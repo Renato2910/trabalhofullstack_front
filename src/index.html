@@ -58,6 +58,8 @@
               <th class="border p-2">Nome</th>
               <th class="border p-2">CPF</th>
               <th class="border p-2">Telefone</th>
+              <th class="border p-2">Ações</th>
+              <!-- Nova coluna de ações -->
             </tr>
           </thead>
           <tbody></tbody>
@@ -66,6 +68,9 @@
     </div>
 
     <script>
+      let editMode = false;
+      let currentPersonId = null;
+
       document
         .getElementById("formPessoa")
         .addEventListener("submit", async (event) => {
@@ -82,8 +87,16 @@
           };
 
           try {
-            const response = await fetch("http://localhost:3000/api/pessoas", {
-              method: "POST",
+            let url = "http://localhost:3000/api/pessoas";
+            let method = "POST";
+
+            if (editMode) {
+              url = `http://localhost:3000/api/pessoas/${currentPersonId}`;
+              method = "PUT"; // Atualizar dados
+            }
+
+            const response = await fetch(url, {
+              method: method,
               headers: {
                 "Content-Type": "application/json",
               },
@@ -93,14 +106,19 @@
             const result = await response.json();
 
             if (response.ok) {
-              document.getElementById("message").innerText =
-                "Pessoa enviada com sucesso!";
+              document.getElementById("message").innerText = editMode
+                ? "Pessoa atualizada com sucesso!"
+                : "Pessoa enviada com sucesso!";
               document.getElementById("formPessoa").reset();
               loadPessoas();
 
               setTimeout(() => {
                 document.getElementById("message").innerText = "";
               }, 5000);
+
+              // Resetar modo de edição
+              editMode = false;
+              currentPersonId = null;
             } else {
               document.getElementById("message").innerText = `Erro: ${
                 result.error || result.message || "Desconhecido"
@@ -126,12 +144,40 @@
               <td class="border p-2">${person.Nome}</td>
               <td class="border p-2">${person.Cpf}</td>
               <td class="border p-2">${person.Telefone}</td>
+              <td class="border p-2 text-center">
+                <button class="edit-btn" data-id="${person.Id}">
+                  ✏️ <!-- Ícone de caneta -->
+                </button>
+              </td>
             `;
             tableBody.appendChild(row);
+          });
+
+          // Adicionar eventos de clique para cada botão de editar
+          document.querySelectorAll(".edit-btn").forEach((button) => {
+            button.addEventListener("click", handleEdit);
           });
         } catch (error) {
           console.error("Erro ao carregar pessoas:", error);
         }
+      }
+
+      function handleEdit(event) {
+        const personId = event.target.dataset.id;
+        currentPersonId = personId;
+        editMode = true;
+
+        // Carregar os dados da pessoa no formulário
+        fetch(`http://localhost:3000/api/pessoas/${personId}`)
+          .then((response) => response.json())
+          .then((person) => {
+            document.getElementById("nome").value = person.Nome;
+            document.getElementById("cpf").value = person.Cpf;
+            document.getElementById("telefone").value = person.Telefone;
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar dados da pessoa:", error);
+          });
       }
 
       document.addEventListener("DOMContentLoaded", loadPessoas);
