@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulário de Pessoa</title>
+    <link rel="stylesheet" href="/styles/output.css" />
+  </head>
+  <body class="bg-[#f4f4f4] flex justify-center items-center min-h-screen m-0">
+    <div class="rounded-lg shadow-lg shadow-slate-500/50 w-72 p-6 bg-white">
+      <h1 class="text-center mb-5 text-lg font-bold">Formulário de Pessoa</h1>
+      <form id="formPessoa" class="flex flex-col">
+        <label for="nome" class="mb-1 ml-1">Nome</label>
+        <input
+          type="text"
+          name="nome"
+          id="nome"
+          class="mb-4 p-2 border rounded"
+          required
+        />
+
+        <label for="cpf" class="mb-1 ml-1">CPF</label>
+        <input
+          type="text"
+          name="cpf"
+          id="cpf"
+          class="mb-4 p-2 border rounded"
+          required
+        />
+
+        <label for="telefone" class="mb-1 ml-1">Telefone</label>
+        <input
+          type="text"
+          name="telefone"
+          id="telefone"
+          class="mb-4 p-2 border rounded"
+          required
+        />
+
+        <button
+          type="submit"
+          class="p-2 bg-[#28a745] text-white border-none rounded-md cursor-pointer hover:bg-[#218838]"
+        >
+          Enviar
+        </button>
+      </form>
+      <div id="message" class="mt-4 text-center"></div>
+    </div>
+
+    <script>
+      document
+        .getElementById("formPessoa")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          const nome = document.getElementById("nome").value;
+          const cpf = document.getElementById("cpf").value;
+          const telefone = document.getElementById("telefone").value;
+
+          const personData = {
+            Nome: nome,
+            Cpf: cpf,
+            Telefone: telefone,
+          };
+
+          try {
+            const response = await fetch("http://localhost:3000/api/pessoas", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(personData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              document.getElementById("message").innerText =
+                "Pessoa enviada com sucesso!";
+              document.getElementById("formPessoa").reset();
+            } else {
+              document.getElementById("message").innerText = `Erro: ${
+                result.error || result.message || "Desconhecido"
+              }`;
+            }
+          } catch (error) {
+            document.getElementById("message").innerText =
+              "Erro na comunicação com o servidor.";
+          }
+        });
+    </script>
+  </body>
+</html>
